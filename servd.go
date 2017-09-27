@@ -50,9 +50,6 @@ func (s *Servd) Run() error {
 		return errors.New("servd: cannot re-run")
 	}
 
-	// initialize
-	s.statSubscribers = make(map[Status][]chan<- Status)
-
 	s.changeStatus(Running)
 	defer s.changeStatus(Stopped)
 
@@ -107,10 +104,18 @@ func (s *Servd) StopAndWait(ctx context.Context) (Status, error) {
 }
 
 func (s *Servd) notifyStatus(c chan<- Status, stat Status) {
+	if s.statSubscribers == nil {
+		s.statSubscribers = make(map[Status][]chan<- Status)
+	}
+
 	s.statSubscribers[stat] = append(s.statSubscribers[stat], c)
 }
 
 func (s *Servd) cancelNotifyStatus(c chan<- Status, stat Status) {
+	if s.statSubscribers == nil {
+		return
+	}
+
 	subs := s.statSubscribers[stat]
 	i := chanIndex(subs, c)
 	if i < 0 {
@@ -123,6 +128,10 @@ func (s *Servd) cancelNotifyStatus(c chan<- Status, stat Status) {
 
 func (s *Servd) changeStatus(stat Status) {
 	s.status = stat
+
+	if s.statSubscribers == nil {
+		return
+	}
 
 	// notifies all subscribers of s
 	subs, ok := s.statSubscribers[stat]
