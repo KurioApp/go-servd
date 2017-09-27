@@ -97,12 +97,6 @@ func (s *Servd) Stop() bool {
 	return true
 }
 
-// StopAndWait the service to be stopped.
-func (s *Servd) StopAndWait(ctx context.Context) (Status, error) {
-	s.Stop()
-	return s.WaitForStatus(ctx, Stopped)
-}
-
 func (s *Servd) notifyStatus(c chan<- Status, stat Status) {
 	if s.statSubscribers == nil {
 		s.statSubscribers = make(map[Status][]chan<- Status)
