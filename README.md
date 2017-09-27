@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/KurioApp/go-servd.svg?branch=master)](https://travis-ci.org/KurioApp/go-servd)
+[![GoDoc](https://godoc.org/github.com/KurioApp/go-servd?status.svg)](https://godoc.org/github.com/KurioApp/go-servd)
 # go-servd
 go-servd is standard API for service like daemon.
 
