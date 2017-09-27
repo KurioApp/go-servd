@@ -11,11 +11,11 @@ $ go get github.com/KurioApp/go-servd
 ## Overview
 Standard way to run:
 ```golang
-httpd := NewHTTPService() // construct your Servd
+d := NewServiceImpl() // construct your Servd
 
 // Standard way to run
 go func() {
-    if err := httpd.Run(); err != nil {
+    if err := d.Run(); err != nil {
     // fail to run
 }
 }()
@@ -23,7 +23,7 @@ go func() {
 
 Standard way to stop:
 ```golang
-if ok := httpd.Stop(); !ok {
+if ok := d.Stop(); !ok {
     // already been stop
 }
 ```
@@ -31,7 +31,7 @@ if ok := httpd.Stop(); !ok {
 Standard way to wait for service to be shutdown gracefully:
 ```golang
 // wait until reach Stopped state
-stat := httpd.WaitForStatus(servd.Stopped)
+stat := d.WaitForStatus(servd.Stopped)
 ```
 
 ## Example
@@ -44,7 +44,7 @@ server := &http.Server {
     Handler: myHandler
 }
 
-hd := servd.HandleFunc(func(ctx context.Context) error {
+d := servd.HandleFunc(func(ctx context.Context) error {
     go func() {
         // wait until stop signal received
         <-ctx.Done()

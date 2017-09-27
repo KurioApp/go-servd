@@ -29,7 +29,7 @@ What we need is to implement servd.Handler. For shortcut we can use servd.Handle
 		Handler: myHandler
 	}
 
-	hd := servd.HandleFunc(func(ctx context.Context) error {
+	d := servd.HandleFunc(func(ctx context.Context) error {
 		go func() {
 			// wait until stop signal received
 			<-ctx.Done()
