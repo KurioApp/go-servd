@@ -34,9 +34,10 @@ Standard way to wait for service to be shutdown gracefully:
 stat := d.WaitForStatus(servd.Stopped)
 ```
 
-## Example
+## Implementation Example
 
 What we need is to implement `servd.Handler`. For shortcut we can use `servd.HandleFunc`.
+`Servd` will pass cancellable `context.Context`, listen to the `ctx.Done()` channel as shutdown signal.
 
 ```golang
 server := &http.Server {

@@ -20,9 +20,10 @@ Standard way to wait for service to be shutdown gracefully:
 	// wait until reach Stopped state
 	s := d.WaitForStatus(servd.Stopped)
 
-Example
+Implementation Example
 
 What we need is to implement servd.Handler. For shortcut we can use servd.HandleFunc.
+Servd will pass cancellable context.Context, listen to the ctx.Done() channel as shutdown signal.
 
 	server := &http.Server {
 		Addr: ":8080"

@@ -5,21 +5,23 @@ import (
 	"errors"
 )
 
-// Status type of the service.
+// Status type of the service. It describe the lifecycle of the service.
 type Status int
 
 const (
-	// Created status.
+	// Created status. Phase when the service just created not started yet.
 	Created Status = iota
 
-	// Running status.
+	// Running status. Phase when the service is running.
 	Running
 
-	// Stopped status
+	// Stopped status. Phase when the service is stopped.
 	Stopped
 )
 
 // Handler is the application handler.
+//
+// Servd will pass ctx as cancellable context.Context to Handle(...) method. Listen to the ctx.Done() to as shutdown signal.
 type Handler interface {
 	Handle(context.Context) error
 }
@@ -40,7 +42,8 @@ type Servd struct {
 	stop            func()
 }
 
-// Run the service.
+// Run the service. When Run failed or error occur and forced the service to stop,
+// then it should return error.
 func (s *Servd) Run() error {
 	if s.Handler == nil {
 		return errors.New("servd: no handler")
@@ -68,7 +71,10 @@ func (s *Servd) Status() Status {
 }
 
 // WaitForStatus waiting for specific status.
+//
 // It will wait until it reach or passed the expected status.
+// If the status has reach the one that it wait for, then it will return immediately.
+// If the status has pass the one that it wait for, then it will return the latest one.
 func (s *Servd) WaitForStatus(ctx context.Context, stat Status) (Status, error) {
 	if s.status >= stat {
 		return s.status, nil
@@ -87,7 +93,7 @@ func (s *Servd) WaitForStatus(ctx context.Context, stat Status) (Status, error) 
 }
 
 // Stop the service.
-// Return true if the service stop has been called or the app is shutting down.
+// Return true if the service stop has been called or when the app is shutting down.
 func (s *Servd) Stop() bool {
 	if s.stop == nil && s.status == Running {
 		return false
