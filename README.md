@@ -9,7 +9,7 @@ $ go get github.com/KurioApp/go-servd
 ```
 
 ## Overview
-Standard way to run
+Standard way to run:
 ```golang
 httpd := NewHTTPService() // construct your Servd
 
@@ -21,15 +21,42 @@ go func() {
 }()
 ```
 
-Standard way to stop
+Standard way to stop:
 ```golang
 if ok := httpd.Stop(); !ok {
     // already been stop
 }
 ```
 
-Standard way to wait for service to be shutdown gracefully
+Standard way to wait for service to be shutdown gracefully:
 ```golang
-// wait and get the status
+// wait until reach Stopped state
 stat := httpd.WaitForStatus(servd.Stopped)
+```
+
+## Example
+
+What we need is to implement `servd.Handler`. For shortcut we can use `servd.HandleFunc`.
+
+```golang
+server := &http.Server {
+    Addr: ":8080"
+    Handler: myHandler
+}
+
+hd := servd.HandleFunc(func(ctx context.Context) error {
+    go func() {
+        // wait until stop signal received
+        <-ctx.Done()
+        if err := server.Shutdown(context.Background()); err != nil {
+            // fail to shutdown
+        }
+    }()
+
+    err := server.ListenAndServe()
+    if err != http.ErrServerClosed {
+        return err
+    }
+    return nil
+})
 ```
