@@ -41,8 +41,8 @@ What we need is to implement `servd.Handler`. For shortcut we can use `servd.Han
 
 ```golang
 server := &http.Server {
-    Addr: ":8080"
-    Handler: myHandler
+    Addr: ":8080",
+    Handler: myHandler,
 }
 
 d := servd.HandleFunc(func(ctx context.Context) error {
