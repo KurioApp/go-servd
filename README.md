@@ -40,12 +40,16 @@ What we need is to implement `servd.Handler`. For shortcut we can use `servd.Han
 `Servd` will pass cancellable `context.Context`, listen to the `ctx.Done()` channel as shutdown signal.
 
 ```golang
-server := &http.Server {
-    Addr: ":8080",
-    Handler: myHandler,
+mux := http.NewServeMux()
+mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Hi there!")
+})
+server := &http.Server{
+    Addr:    ":8080",
+    Handler: mux,
 }
 
-d := servd.HandleFunc(func(ctx context.Context) error {
+handler := servd.HandleFunc(func(ctx context.Context) error {
     go func() {
         // wait until stop signal received
         <-ctx.Done()
@@ -60,4 +64,8 @@ d := servd.HandleFunc(func(ctx context.Context) error {
     }
     return nil
 })
+
+serv := &servd.Servd{
+    Handler: handler,
+}
 ```
