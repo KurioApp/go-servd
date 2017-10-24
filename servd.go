@@ -103,6 +103,12 @@ func (s *Servd) Stop() bool {
 	return true
 }
 
+// StopWait wills top and wait.
+func (s *Servd) StopWait(ctx context.Context) error {
+	_, err := s.WaitForStatus(ctx, Stopped)
+	return err
+}
+
 func (s *Servd) notifyStatus(c chan<- Status, stat Status) {
 	if s.statSubscribers == nil {
 		s.statSubscribers = make(map[Status][]chan<- Status)
