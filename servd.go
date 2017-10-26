@@ -3,6 +3,7 @@ package servd
 import (
 	"context"
 	"errors"
+	"sync"
 )
 
 // Status type of the service. It describe the lifecycle of the service.
@@ -37,9 +38,11 @@ func (f HandleFunc) Handle(ctx context.Context) error {
 // Servd is the service daemon.
 type Servd struct {
 	Handler         Handler
-	status          Status
 	statSubscribers map[Status][]chan<- Status
-	stop            func()
+
+	mt     sync.Mutex
+	status Status
+	stop   func()
 }
 
 // Run the service. When Run failed or error occur and forced the service to stop,
@@ -49,19 +52,16 @@ func (s *Servd) Run() error {
 		return errors.New("servd: no handler")
 	}
 
+	s.mt.Lock()
+	defer s.mt.Unlock()
 	if s.status > Created {
 		return errors.New("servd: cannot re-run")
 	}
 
 	s.changeStatus(Running)
 	defer s.changeStatus(Stopped)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	s.stop = cancel
-	return s.handle(ctx)
-}
-
-func (s *Servd) handle(ctx context.Context) error {
+	ctx, stop := context.WithCancel(context.Background())
+	s.stop = stop
 	return s.Handler.Handle(ctx)
 }
 
@@ -93,8 +93,16 @@ func (s *Servd) WaitForStatus(ctx context.Context, stat Status) (Status, error) 
 }
 
 // Stop the service.
-// Return true if the service stop has been called or when the app is shutting down.
+// Return false if the Stop already been called or service already stopped.
 func (s *Servd) Stop() bool {
+	s.mt.Lock()
+	defer s.mt.Unlock()
+
+	if s.status == Created {
+		s.changeStatus(Stopped)
+		return true
+	}
+
 	if s.stop == nil && s.status == Running {
 		return false
 	}
